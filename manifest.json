@@ -1,0 +1,11 @@
+{
+	"id": "chorefast",
+	"name": "Chorefast",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Gamified chore picker with random selection, points, and levels — right inside Obsidian.",
+	"author": "Chorefast",
+	"authorUrl": "https://chore.fast",
+	"fundingUrl": "https://chore.fast",
+	"isDesktopOnly": false
+}

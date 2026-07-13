@@ -1,0 +1,384 @@
+.chorefast-container {
+	padding: 1rem;
+	max-width: 600px;
+	margin: 0 auto;
+}
+
+.cf-header {
+	margin-bottom: 0.5rem;
+}
+
+.cf-source-row {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 0.75rem;
+	font-size: 0.8rem;
+}
+
+.cf-source-path {
+	color: var(--text-muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cf-sync-url {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin-top: 0.25rem;
+	font-size: 0.75rem;
+}
+
+.cf-sync-link {
+	color: var(--text-accent);
+	text-decoration: underline;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 200px;
+}
+
+.cf-sync-link:hover {
+	color: var(--interactive-accent-hover);
+}
+
+.cf-name-row {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.cf-name-row h1 {
+	margin: 0;
+	font-size: 1.4rem;
+	font-family: 'Caveat', cursive;
+}
+
+.cf-icon-btn {
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	font-size: 0.9rem;
+	padding: 0.2rem;
+	color: var(--text-muted);
+}
+
+.cf-icon-btn:hover {
+	color: var(--text-normal);
+}
+
+.cf-slot-area {
+	text-align: center;
+	margin: 1rem 0;
+}
+
+.cf-spin-btn {
+	font-size: 1.05rem;
+	padding: 0.6rem 1.2rem;
+}
+
+.cf-slot-display {
+	font-size: 1.1rem;
+	font-weight: 600;
+	margin-bottom: 0.5rem;
+	min-height: 1.5rem;
+}
+
+.cf-slot-landed {
+	color: var(--interactive-accent);
+}
+
+.cf-empty {
+	text-align: center;
+	padding: 2rem 1rem;
+	color: var(--text-muted);
+}
+
+.cf-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.cf-card {
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	padding: 0.75rem;
+	display: flex;
+	align-items: flex-start;
+	gap: 0.75rem;
+}
+
+.cf-chore-card {
+	position: relative;
+}
+
+.cf-chore-card.cf-selected {
+	border-color: var(--interactive-accent);
+	box-shadow: 0 0 0 1px var(--interactive-accent);
+}
+
+.cf-chore-card.cf-inactive {
+	opacity: 0.55;
+	pointer-events: none;
+}
+
+.cf-chore-card.cf-done {
+	opacity: 0.55;
+}
+
+.cf-checkbox {
+	margin-top: 0.15rem;
+	cursor: pointer;
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
+}
+
+.cf-checkbox-placeholder {
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 0.15rem;
+}
+
+.cf-chore-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.cf-chore-body h3 {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.cf-chore-body p {
+	margin: 0.15rem 0 0;
+	font-size: 0.85rem;
+	color: var(--text-muted);
+}
+
+.cf-meta {
+	display: flex;
+	gap: 0.4rem;
+	align-items: center;
+	margin-top: 0.25rem;
+	flex-wrap: wrap;
+}
+
+.cf-diff {
+	font-size: 0.7rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	padding: 0.1rem 0.4rem;
+	border-radius: 3px;
+	font-weight: 600;
+}
+
+.cf-diff-easy {
+	background: #86efac;
+	color: #052e16;
+}
+
+.cf-diff-medium {
+	background: #fde047;
+	color: #422006;
+}
+
+.cf-diff-hard {
+	background: #fca5a5;
+	color: #450a0a;
+}
+
+.cf-recurrence {
+	font-size: 0.7rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	padding: 0.1rem 0.4rem;
+	border-radius: 3px;
+	font-weight: 600;
+}
+
+.cf-due {
+	font-size: 0.75rem;
+	color: var(--text-muted);
+}
+
+.cf-current-badge {
+	position: absolute;
+	top: -6px;
+	right: 28px;
+	font-size: 0.65rem;
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	padding: 0.1rem 0.35rem;
+	border-radius: 3px;
+	font-weight: 600;
+}
+
+.cf-strikethrough {
+	text-decoration: line-through;
+}
+
+.cf-section-label {
+	margin-top: 1rem;
+	font-size: 0.85rem;
+	color: var(--text-muted);
+}
+
+.cf-done-card {
+	text-align: center;
+	padding: 2rem 1rem;
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	margin-top: 0.5rem;
+}
+
+.cf-done-emoji {
+	font-size: 3rem;
+	margin-bottom: 0.5rem;
+	animation: cf-bounce 1s ease-in-out infinite;
+}
+
+.cf-done-title {
+	font-family: 'Caveat', cursive;
+	font-size: 1.75rem;
+	margin-bottom: 0.4rem;
+}
+
+.cf-muted {
+	color: var(--text-muted);
+}
+
+.cf-action-row {
+	display: flex;
+	gap: 0.5rem;
+	margin-top: 1rem;
+}
+
+.cf-action-btn {
+	flex: 1;
+	padding: 0.5rem;
+	font-size: 0.9rem;
+	cursor: pointer;
+}
+
+.cf-dashed {
+	border-style: dashed;
+	color: var(--text-muted);
+	background: transparent;
+}
+
+.cf-dashed:hover {
+	border-color: var(--interactive-accent);
+	color: var(--text-normal);
+}
+
+.cf-edit-input {
+	font-size: 1.4rem;
+	font-family: 'Caveat', cursive;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-primary);
+	color: var(--text-normal);
+	padding: 0.2rem 0.4rem;
+	border-radius: 4px;
+	min-width: 160px;
+}
+
+.cf-mode-row {
+	display: flex;
+	gap: 0.25rem;
+	background: var(--background-secondary);
+	padding: 0.25rem;
+	border-radius: 8px;
+	margin-bottom: 1rem;
+}
+
+.cf-mode-btn {
+	flex: 1;
+	font-size: 0.85rem;
+	padding: 0.4rem 0.6rem;
+	border-radius: 6px;
+	border: none;
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+	font-weight: 500;
+}
+
+.cf-mode-btn.active {
+	background: var(--background-primary);
+	color: var(--text-normal);
+	box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+
+.cf-import-preview {
+	text-align: center;
+	font-size: 0.85rem;
+	color: var(--text-muted);
+	margin: 0.5rem 0;
+}
+
+.cf-file-search {
+	position: relative;
+	margin-bottom: 0.75rem;
+}
+
+.cf-file-input {
+	width: 100%;
+	padding: 0.5rem 0.6rem;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-size: 0.9rem;
+	font-family: inherit;
+}
+
+.cf-file-results {
+	max-height: 200px;
+	overflow-y: auto;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	margin-top: 0.25rem;
+	background: var(--background-primary);
+}
+
+.cf-file-result {
+	padding: 0.45rem 0.6rem;
+	cursor: pointer;
+	font-size: 0.85rem;
+	color: var(--text-normal);
+	border-bottom: 1px solid var(--background-modifier-border-hover);
+}
+
+.cf-file-result:last-child {
+	border-bottom: none;
+}
+
+.cf-file-result:hover,
+.cf-file-result.selected {
+	background: var(--background-modifier-hover);
+}
+
+.cf-file-empty {
+	padding: 0.6rem;
+	font-size: 0.85rem;
+	color: var(--text-muted);
+	text-align: center;
+}
+
+@keyframes cf-bounce {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-8px); }
+}
