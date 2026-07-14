@@ -13,8 +13,6 @@ export class ChorefastSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		new Setting(containerEl).setName('Chorefast Settings').setHeading();
-
 		const data = this.plugin.getData();
 
 		// Server URL

@@ -19,8 +19,8 @@ export default class ChorefastPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'open-chorefast',
-			name: 'Open Chorefast',
+			id: 'open',
+			name: 'Open',
 			callback: () => this.activateView(),
 		});
 
