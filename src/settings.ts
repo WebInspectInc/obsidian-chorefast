@@ -13,7 +13,7 @@ export class ChorefastSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl('h2', { text: 'Chorefast Settings' });
+		new Setting(containerEl).setName('Chorefast Settings').setHeading();
 
 		const data = this.plugin.getData();
 

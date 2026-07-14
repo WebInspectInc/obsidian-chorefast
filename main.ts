@@ -28,7 +28,7 @@ export default class ChorefastPlugin extends Plugin {
 	}
 
 	async onunload() {
-		this.app.workspace.detachLeavesOfType(VIEW_TYPE_CHOREFAST);
+
 	}
 
 	getData(): ChorefastData {
