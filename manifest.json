@@ -1,7 +1,7 @@
 {
 	"id": "chorefast",
 	"name": "Chorefast",
-	"version": "1.0.0",
+	"version": "0.0.1",
 	"minAppVersion": "0.15.0",
 	"description": "Gamified chore picker with random selection, points, and levels — right inside Obsidian.",
 	"author": "Tim Miller",
