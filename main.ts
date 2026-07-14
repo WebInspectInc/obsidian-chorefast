@@ -15,7 +15,7 @@ export default class ChorefastPlugin extends Plugin {
 		this.registerView(VIEW_TYPE_CHOREFAST, (leaf) => new ChorefastView(leaf, this.store, this.data));
 
 		this.addRibbonIcon('dice', 'Open Chorefast', () => {
-			this.activateView();
+			void this.activateView();
 		});
 
 		this.addCommand({
@@ -27,7 +27,7 @@ export default class ChorefastPlugin extends Plugin {
 		this.addSettingTab(new ChorefastSettingTab(this));
 	}
 
-	async onunload() {
+	onunload() {
 
 	}
 
@@ -48,7 +48,7 @@ export default class ChorefastPlugin extends Plugin {
 
 	async activateView() {
 		const { workspace } = this.app;
-		let leaf: WorkspaceLeaf | null = null;
+		let leaf: WorkspaceLeaf | null;
 		const leaves = workspace.getLeavesOfType(VIEW_TYPE_CHOREFAST);
 		if (leaves.length > 0) {
 			leaf = leaves[0];
@@ -57,7 +57,7 @@ export default class ChorefastPlugin extends Plugin {
 			await leaf?.setViewState({ type: VIEW_TYPE_CHOREFAST, active: true });
 		}
 		if (leaf) {
-			workspace.revealLeaf(leaf);
+			await workspace.revealLeaf(leaf);
 		}
 	}
 }

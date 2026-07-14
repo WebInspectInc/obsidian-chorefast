@@ -1,4 +1,4 @@
-import { PluginSettingTab, Setting, Notice } from 'obsidian';
+import { PluginSettingTab, Setting, Notice, requestUrl, Modal, App } from 'obsidian';
 import type ChorefastPlugin from '../main';
 
 export class ChorefastSettingTab extends PluginSettingTab {
@@ -71,8 +71,11 @@ export class ChorefastSettingTab extends PluginSettingTab {
 				.addButton(btn => {
 					btn.setButtonText('Copy');
 					btn.onClick(() => {
-						navigator.clipboard.writeText(url);
-						new Notice('URL copied to clipboard!');
+						void navigator.clipboard.writeText(url).then(() => {
+							new Notice('URL copied to clipboard!');
+						}).catch(() => {
+							new Notice('Failed to copy URL', 4000);
+						});
 					});
 				});
 		}
@@ -85,29 +88,33 @@ export class ChorefastSettingTab extends PluginSettingTab {
 				.addButton(btn => {
 					btn.setButtonText('Delete');
 					btn.setWarning();
-					btn.onClick(async () => {
-						const ok = confirm('Are you sure? This will permanently delete the sync and its task history from the server.');
-						if (!ok) return;
-						btn.setDisabled(true);
-						btn.setButtonText('Deleting...');
-						try {
-							const url = data.serverUrl.replace(/\/+$/, '');
-							const res = await fetch(`${url}/api/sync/${data.syncId}`, { method: 'DELETE' });
-							if (!res.ok && res.status !== 404) {
-								throw new Error(`HTTP ${res.status}`);
+					btn.onClick(() => {
+						new ConfirmModal(this.app, 'Are you sure? This will permanently delete the sync and its task history from the server.', async () => {
+							btn.setDisabled(true);
+							btn.setButtonText('Deleting...');
+							try {
+								const url = data.serverUrl.replace(/\/+$/, '');
+								const res = await requestUrl({
+									url: `${url}/api/sync/${data.syncId}`,
+									method: 'DELETE',
+									throw: false,
+								});
+								if (res.status >= 400 && res.status !== 404) {
+									throw new Error(`HTTP ${res.status}`);
+								}
+								data.syncId = '';
+								await this.plugin.saveDataState();
+								new Notice('Sync deleted. A new one can be created anytime.', 4000);
+								this.display();
+							} catch (e) {
+								console.error('Chorefast delete sync error:', e);
+								const msg = e instanceof Error ? e.message : String(e);
+								new Notice(`Failed to delete sync: ${msg}`, 6000);
+							} finally {
+								btn.setDisabled(false);
+								btn.setButtonText('Delete');
 							}
-							data.syncId = '';
-							await this.plugin.saveDataState();
-							new Notice('Sync deleted. A new one can be created anytime.', 4000);
-							this.display();
-						} catch (e) {
-							console.error('Chorefast delete sync error:', e);
-							const msg = e instanceof Error ? e.message : String(e);
-							new Notice(`Failed to delete sync: ${msg}`, 6000);
-						} finally {
-							btn.setDisabled(false);
-							btn.setButtonText('Delete');
-						}
+						}).open();
 					});
 				});
 		}
@@ -120,5 +127,35 @@ export class ChorefastSettingTab extends PluginSettingTab {
 				text.setValue(data.sourceFile ?? '');
 				text.setDisabled(true);
 			});
+	}
+}
+
+class ConfirmModal extends Modal {
+	private message: string;
+	private onConfirm: () => void | Promise<void>;
+
+	constructor(app: App, message: string, onConfirm: () => void | Promise<void>) {
+		super(app);
+		this.message = message;
+		this.onConfirm = onConfirm;
+	}
+
+	onOpen(): void {
+		const { contentEl } = this;
+		contentEl.createEl('p', { text: this.message });
+		const btnRow = contentEl.createDiv({ cls: 'cf-confirm-row' });
+		const yesBtn = btnRow.createEl('button', { text: 'Yes', cls: 'mod-warning' });
+		yesBtn.addEventListener('click', () => {
+			void this.onConfirm();
+			this.close();
+		});
+		const noBtn = btnRow.createEl('button', { text: 'No' });
+		noBtn.addEventListener('click', () => {
+			this.close();
+		});
+	}
+
+	onClose(): void {
+		this.contentEl.empty();
 	}
 }

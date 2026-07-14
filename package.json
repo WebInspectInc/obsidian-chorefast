@@ -4,8 +4,8 @@
 	"description": "Gamified chore picker for Obsidian",
 	"main": "main.js",
 	"scripts": {
-	"dev": "node esbuild.config.mjs",
-	"build": "tsc --noEmit && node esbuild.config.mjs production"
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc --noEmit && node esbuild.config.mjs production"
 	},
 	"keywords": [
 		"obsidian",
@@ -17,7 +17,6 @@
 	"license": "MIT",
 	"devDependencies": {
 		"@types/node": "^20.0.0",
-		"builtin-modules": "^5.3.0",
 		"esbuild": "^0.25.12",
 		"obsidian": "latest",
 		"tslib": "^2.6.0",

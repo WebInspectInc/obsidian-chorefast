@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, TFile, Modal, Setting, Notice, setIcon } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, Modal, Setting, Notice, setIcon, requestUrl, App } from 'obsidian';
 import type { ChorefastData } from './types';
 import { DataStore } from './data';
 
@@ -100,15 +100,17 @@ export class ChorefastView extends ItemView {
 		return 'Chorefast';
 	}
 
-	async onOpen() {
+	onOpen(): Promise<void> {
 		this.container = this.contentEl.createDiv({ cls: 'chorefast-container' });
 		this.registerFileWatcher();
 		this.render();
+		return Promise.resolve();
 	}
 
-	async onClose() {
+	onClose(): Promise<void> {
 		this.container.empty();
 		this.unregisterFileWatcher();
+		return Promise.resolve();
 	}
 
 	refresh() {
@@ -201,7 +203,7 @@ export class ChorefastView extends ItemView {
 			editFileBtn.addEventListener('click', () => {
 				const file = this.app.vault.getAbstractFileByPath(this.data.sourceFile!);
 				if (file && file instanceof TFile) {
-					this.app.workspace.getLeaf().openFile(file);
+					void this.app.workspace.getLeaf().openFile(file);
 				}
 			});
 
@@ -209,15 +211,18 @@ export class ChorefastView extends ItemView {
 			if (this.data.syncId) {
 				const syncBtn = nameRow.createEl('button', { cls: 'cf-icon-btn', attr: { title: 'Sync to web' } });
 				setIcon(syncBtn, 'refresh-cw');
-				syncBtn.addEventListener('click', () => this.performSync());
+				syncBtn.addEventListener('click', () => void this.performSync());
 				const url = `${this.data.serverUrl}/s/${this.data.syncId}`;
 				const syncUrl = header.createEl('div', { cls: 'cf-sync-url' });
 				syncUrl.createEl('a', { text: url, cls: 'cf-sync-link' }).setAttr('href', url);
 				const copyBtn = syncUrl.createEl('button', { cls: 'cf-icon-btn', attr: { title: 'Copy URL' } });
 				setIcon(copyBtn, 'clipboard');
 				copyBtn.addEventListener('click', () => {
-					navigator.clipboard.writeText(url);
-					new Notice('URL copied to clipboard!');
+					void navigator.clipboard.writeText(url).then(() => {
+						new Notice('URL copied to clipboard!');
+					}).catch(() => {
+						new Notice('Failed to copy URL', 4000);
+					});
 				});
 			} else {
 				const connectBtn = nameRow.createEl('button', { cls: 'cf-icon-btn', attr: { title: 'Connect to web' } });
@@ -246,13 +251,13 @@ export class ChorefastView extends ItemView {
 		const spinIcon = spinBtn.createSpan();
 		setIcon(spinIcon, 'dices');
 		spinBtn.createSpan({ text: this.selectedTaskTitle !== null ? ' Pick Another' : ' Pick a Chore' });
-		spinBtn.addEventListener('click', () => this.spin(slotArea, spinBtn));
+		spinBtn.addEventListener('click', () => void this.spin(slotArea, spinBtn));
 
 		// Load tasks
 		const tasks = this.readSourceTasks();
 		// We can't await in render synchronously, so we schedule it
 		// Actually, we can use an async IIFE
-		(async () => {
+		void (async () => {
 			const allTasks = await tasks;
 			const today = this.todayStr();
 			const active = allTasks.filter(t => !t.completed && (!t.dueDate || t.dueDate <= today));
@@ -314,7 +319,7 @@ export class ChorefastView extends ItemView {
 
 		const checkbox = card.createEl('input', { type: 'checkbox', cls: 'cf-checkbox' });
 		checkbox.checked = task.completed;
-		checkbox.addEventListener('change', () => this.toggleTask(task));
+		checkbox.addEventListener('change', () => void this.toggleTask(task));
 
 		const body = card.createDiv({ cls: 'cf-chore-body' });
 		body.createEl('h3', { text: task.title });
@@ -471,14 +476,15 @@ export class ChorefastView extends ItemView {
 			if (!file || !(file instanceof TFile)) return;
 			const markdown = await this.app.vault.read(file);
 
-			const res = await fetch(`${this.data.serverUrl}/api/sync/${this.data.syncId}`, {
+			const res = await requestUrl({
+				url: `${this.data.serverUrl}/api/sync/${this.data.syncId}`,
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				contentType: 'application/json',
 				body: JSON.stringify({ markdown }),
 			});
 
-			if (!res.ok) throw new Error(`HTTP ${res.status}`);
-			const result = await res.json() as { markdown: string; appliedCompletions: number };
+			if (res.status >= 400) throw new Error(`HTTP ${res.status}`);
+			const result = res.json as { markdown: string; appliedCompletions: number };
 
 			if (result.appliedCompletions > 0) {
 				await this.app.vault.modify(file, result.markdown);
@@ -496,9 +502,9 @@ export class ChorefastView extends ItemView {
 }
 
 class AddChoreModal extends Modal {
-	private onAdd: (title: string, difficulty: string, recurrence: string, dueDate: string | null) => void;
+	private onAdd: (title: string, difficulty: string, recurrence: string, dueDate: string | null) => void | Promise<void>;
 
-	constructor(app: any, onAdd: (title: string, difficulty: string, recurrence: string, dueDate: string | null) => void) {
+	constructor(app: App, onAdd: (title: string, difficulty: string, recurrence: string, dueDate: string | null) => void | Promise<void>) {
 		super(app);
 		this.onAdd = onAdd;
 	}
@@ -539,9 +545,9 @@ class AddChoreModal extends Modal {
 		new Setting(contentEl).addButton(btn => {
 			btn.setButtonText('Add');
 			btn.setCta();
-			btn.onClick(async () => {
+			btn.onClick(() => {
 				if (!title.trim()) return;
-				this.onAdd(title.trim(), difficulty, recurrence, dueDate || null);
+				void this.onAdd(title.trim(), difficulty, recurrence, dueDate || null);
 				this.close();
 			});
 		});
@@ -554,10 +560,10 @@ class AddChoreModal extends Modal {
 
 class EditChoreModal extends Modal {
 	private task: ParsedTask;
-	private onSave: (task: ParsedTask) => void;
-	private onDelete: () => void;
+	private onSave: (task: ParsedTask) => void | Promise<void>;
+	private onDelete: () => void | Promise<void>;
 
-	constructor(app: any, task: ParsedTask, onSave: (task: ParsedTask) => void, onDelete: () => void) {
+	constructor(app: App, task: ParsedTask, onSave: (task: ParsedTask) => void | Promise<void>, onDelete: () => void | Promise<void>) {
 		super(app);
 		this.task = task;
 		this.onSave = onSave;
@@ -601,9 +607,9 @@ class EditChoreModal extends Modal {
 		new Setting(contentEl).addButton(btn => {
 			btn.setButtonText('Save');
 			btn.setCta();
-			btn.onClick(async () => {
+			btn.onClick(() => {
 				if (!title.trim()) return;
-				this.onSave({
+				void this.onSave({
 					...this.task,
 					title: title.trim(),
 					difficulty,
@@ -617,8 +623,8 @@ class EditChoreModal extends Modal {
 		new Setting(contentEl).addButton(btn => {
 			btn.setButtonText('Delete');
 			btn.buttonEl.addClass('mod-warning');
-			btn.onClick(async () => {
-				this.onDelete();
+			btn.onClick(() => {
+				void this.onDelete();
 				this.close();
 			});
 		});
@@ -631,10 +637,10 @@ class EditChoreModal extends Modal {
 
 class LinkFileModal extends Modal {
 	private data: ChorefastData;
-	private onLink: (path: string) => void;
+	private onLink: (path: string) => void | Promise<void>;
 	private selectedPath: string = '';
 
-	constructor(app: any, data: ChorefastData, onLink: (path: string) => void) {
+	constructor(app: App, data: ChorefastData, onLink: (path: string) => void | Promise<void>) {
 		super(app);
 		this.data = data;
 		this.onLink = onLink;
@@ -688,12 +694,12 @@ class LinkFileModal extends Modal {
 		new Setting(contentEl).addButton(btn => {
 			btn.setButtonText('Link');
 			btn.setCta();
-			btn.onClick(async () => {
+			btn.onClick(() => {
 				if (!this.selectedPath) {
 					new Notice('Please select a file.');
 					return;
 				}
-				this.onLink(this.selectedPath);
+				void this.onLink(this.selectedPath);
 				this.close();
 			});
 		});
