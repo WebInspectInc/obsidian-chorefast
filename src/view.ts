@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, TFile, Modal, Setting, Notice } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, Modal, Setting, Notice, setIcon } from 'obsidian';
 import type { ChorefastData } from './types';
 import { DataStore } from './data';
 
@@ -196,30 +196,32 @@ export class ChorefastView extends ItemView {
 			const nameRow = header.createDiv({ cls: 'cf-name-row' });
 			const basename = this.data.sourceFile.split('/').pop() || this.data.sourceFile;
 			nameRow.createEl('h1', { text: basename });
-			const editFileBtn = nameRow.createEl('button', { text: '✎', cls: 'cf-icon-btn' });
+			const editFileBtn = nameRow.createEl('button', { cls: 'cf-icon-btn' });
+			setIcon(editFileBtn, 'pencil');
 			editFileBtn.addEventListener('click', () => {
 				const file = this.app.vault.getAbstractFileByPath(this.data.sourceFile!);
 				if (file && file instanceof TFile) {
 					this.app.workspace.getLeaf().openFile(file);
 				}
 			});
-			const changeBtn = nameRow.createEl('button', { text: 'Change', cls: 'cf-icon-btn' });
-			changeBtn.addEventListener('click', () => this.showLinkFileModal());
 
 			// Sync button
 			if (this.data.syncId) {
-				const syncBtn = nameRow.createEl('button', { text: '🔄', cls: 'cf-icon-btn', attr: { title: 'Sync to web' } });
+				const syncBtn = nameRow.createEl('button', { cls: 'cf-icon-btn', attr: { title: 'Sync to web' } });
+				setIcon(syncBtn, 'refresh-cw');
 				syncBtn.addEventListener('click', () => this.performSync());
 				const url = `${this.data.serverUrl}/s/${this.data.syncId}`;
 				const syncUrl = header.createEl('div', { cls: 'cf-sync-url' });
 				syncUrl.createEl('a', { text: url, cls: 'cf-sync-link' }).setAttr('href', url);
-				const copyBtn = syncUrl.createEl('button', { text: '📋', cls: 'cf-icon-btn', attr: { title: 'Copy URL' } });
+				const copyBtn = syncUrl.createEl('button', { cls: 'cf-icon-btn', attr: { title: 'Copy URL' } });
+				setIcon(copyBtn, 'clipboard');
 				copyBtn.addEventListener('click', () => {
 					navigator.clipboard.writeText(url);
 					new Notice('URL copied to clipboard!');
 				});
 			} else {
-				const connectBtn = nameRow.createEl('button', { text: '🌐', cls: 'cf-icon-btn', attr: { title: 'Connect to web' } });
+				const connectBtn = nameRow.createEl('button', { cls: 'cf-icon-btn', attr: { title: 'Connect to web' } });
+				setIcon(connectBtn, 'globe');
 				connectBtn.addEventListener('click', () => {
 					new Notice('Configure web sync in Settings → Community Plugins → Chorefast');
 				});
@@ -228,17 +230,22 @@ export class ChorefastView extends ItemView {
 
 		if (!this.data.sourceFile) {
 			this.container.createDiv({ cls: 'cf-empty', text: 'No file linked. Choose a markdown file to use as your chore database.' });
-			const linkBtn = this.container.createEl('button', { text: '🔗 Link to file', cls: 'mod-cta' });
+			const linkBtn = this.container.createEl('button', { cls: 'mod-cta' });
+			const linkIcon = linkBtn.createSpan();
+			setIcon(linkIcon, 'link');
+			linkBtn.createSpan({ text: ' Link to file' });
 			linkBtn.addEventListener('click', () => this.showLinkFileModal());
 			return;
 		}
 
-		// Slot machine
+		// task chooser
 		const slotArea = this.container.createDiv({ cls: 'cf-slot-area' });
 		const spinBtn = slotArea.createEl('button', {
-			text: this.selectedTaskTitle !== null ? '🎲 Pick Another' : '🎲 Pick a Chore',
 			cls: 'cf-spin-btn mod-cta',
 		});
+		const spinIcon = spinBtn.createSpan();
+		setIcon(spinIcon, 'dices');
+		spinBtn.createSpan({ text: this.selectedTaskTitle !== null ? ' Pick Another' : ' Pick a Chore' });
 		spinBtn.addEventListener('click', () => this.spin(slotArea, spinBtn));
 
 		// Load tasks
@@ -284,9 +291,10 @@ export class ChorefastView extends ItemView {
 			}
 
 			if (allDone && allTasks.length > 0) {
-				const doneCard = this.container.createDiv({ cls: 'cf-done-card' });
-				doneCard.createEl('div', { text: '⭐', cls: 'cf-done-emoji' });
-				doneCard.createEl('h2', { text: 'All checked off!', cls: 'cf-done-title' });
+			const doneCard = this.container.createDiv({ cls: 'cf-done-card' });
+			const doneEmoji = doneCard.createEl('div', { cls: 'cf-done-emoji' });
+			setIcon(doneEmoji, 'star');
+			doneCard.createEl('h2', { text: 'All checked off!', cls: 'cf-done-title' });
 				doneCard.createEl('p', { text: 'Every chore done for the day.', cls: 'cf-muted' });
 			}
 
@@ -320,7 +328,8 @@ export class ChorefastView extends ItemView {
 			meta.createEl('span', { text: task.dueDate, cls: 'cf-due' });
 		}
 
-		const editBtn = card.createEl('button', { text: '✎', cls: 'cf-icon-btn' });
+		const editBtn = card.createEl('button', { cls: 'cf-icon-btn' });
+		setIcon(editBtn, 'pencil');
 		editBtn.addEventListener('click', () => this.editTask(task));
 
 		if (task.title === this.selectedTaskTitle) {
@@ -330,7 +339,8 @@ export class ChorefastView extends ItemView {
 
 	private renderInactiveCard(container: HTMLElement, task: ParsedTask) {
 		const card = container.createDiv({ cls: 'cf-card cf-chore-card cf-inactive' });
-		card.createEl('span', { text: '⏳', cls: 'cf-checkbox-placeholder' });
+		const clockPlaceholder = card.createEl('span', { cls: 'cf-checkbox-placeholder' });
+		setIcon(clockPlaceholder, 'clock');
 		const body = card.createDiv({ cls: 'cf-chore-body' });
 		body.createEl('h3', { text: task.title });
 		const meta = body.createDiv({ cls: 'cf-meta' });
@@ -343,7 +353,8 @@ export class ChorefastView extends ItemView {
 
 	private renderDoneCard(container: HTMLElement, task: ParsedTask) {
 		const card = container.createDiv({ cls: 'cf-card cf-chore-card cf-done' });
-		card.createEl('span', { text: '✓', cls: 'cf-checkbox-placeholder' });
+		const checkPlaceholder = card.createEl('span', { cls: 'cf-checkbox-placeholder' });
+		setIcon(checkPlaceholder, 'check');
 		const body = card.createDiv({ cls: 'cf-chore-body' });
 		const title = body.createEl('h3', { text: task.title });
 		title.addClass('cf-strikethrough');
