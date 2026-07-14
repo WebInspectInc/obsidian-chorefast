@@ -405,10 +405,13 @@ export class ChorefastView extends ItemView {
 			if (elapsed >= totalDuration) {
 				display.setText(target.title);
 				display.addClass('cf-slot-landed');
-				this.spinning = false;
-				btn.disabled = false;
 				this.selectedTaskTitle = target.title;
-				this.render();
+				// Pause so the user can see the final result before re-rendering
+				setTimeout(() => {
+					this.spinning = false;
+					btn.disabled = false;
+					this.render();
+				}, 600);
 				return;
 			}
 			const progress = elapsed / totalDuration;
