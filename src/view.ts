@@ -28,7 +28,6 @@ const DIFFICULTY_BY_EMOJI: Record<string, 'easy' | 'medium' | 'hard'> = {
 function parseTasksFromMarkdown(content: string): ParsedTask[] {
 	const tasks: ParsedTask[] = [];
 	const lines = content.split(/\r?\n/);
-	const diffTags = ['#easy', '#medium', '#hard'];
 	const recTags = ['#one-time', '#weekly', '#monthly', '#yearly'];
 
 	for (const line of lines) {
@@ -45,14 +44,6 @@ function parseTasksFromMarkdown(content: string): ParsedTask[] {
 			if (rest.includes(emoji)) {
 				difficulty = diff;
 				rest = rest.replace(emoji, '').trim();
-			}
-		}
-
-		// Fallback to hashtags (backward compat)
-		for (const tag of diffTags) {
-			if (rest.includes(tag)) {
-				difficulty = tag.slice(1) as 'easy' | 'medium' | 'hard';
-				rest = rest.replace(tag, '').trim();
 			}
 		}
 
@@ -698,5 +689,3 @@ class LinkFileModal extends Modal {
 		this.contentEl.empty();
 	}
 }
-
-

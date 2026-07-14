@@ -29,8 +29,6 @@ Example file:
 - [x] Call dentist 🟢
 ```
 
-> **Note:** Emoji difficulties are the preferred format and are fully compatible with the Obsidian Tasks plugin. Hashtag difficulties (`#easy`, `#medium`, `#hard`) are also supported, but IMO not ideal.
-
 ## Web Sync Setup
 
 1. Open [chore.fast/create-sync](https://chore.fast/create-sync) in your browser.
