@@ -10,7 +10,7 @@ In my experience this greatly reduces the "barrier to entry" and allows me to kn
 
 ## Installation
 
-This plugin should be available in the community plugins list soon. Otherwise you can use BRAT or install manually.
+Install from the [community plugins](https://github.com/WebInspectInc/obsidian-chorefast).
 
 ## Writing Tasks
 
