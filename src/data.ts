@@ -20,6 +20,7 @@ export class DataStore {
 			sourceFile: data?.sourceFile ?? null,
 			serverUrl: data?.serverUrl ?? DEFAULT_DATA.serverUrl,
 			syncId: data?.syncId ?? '',
+			syncSecret: data?.syncSecret ?? '',
 		};
 		return this.cache;
 	}

@@ -42,10 +42,23 @@ export class ChorefastSettingTab extends PluginSettingTab {
 				});
 			});
 
+		// Sync Secret
+		new Setting(containerEl)
+			.setName('Sync Secret')
+			.setDesc('Your sync write secret. Required to push changes. Leave blank for read-only or to disconnect.')
+			.addText(text => {
+				text.setValue(data.syncSecret);
+				text.onChange(async (value) => {
+					data.syncSecret = value.trim();
+					await this.plugin.saveDataState();
+					this.display();
+				});
+			});
+
 		// Create new sync
 		new Setting(containerEl)
 			.setName('Create new sync')
-			.setDesc('Open the web app to create a sync and get your sync ID.')
+			.setDesc('Open the web app to create a sync and get your sync ID and secret.')
 			.addButton(btn => {
 				btn.setButtonText('Open in Browser');
 				btn.onClick(() => {
@@ -60,19 +73,37 @@ export class ChorefastSettingTab extends PluginSettingTab {
 
 		// Public URL display
 		if (data.syncId) {
-			const url = `${data.serverUrl}/s/${data.syncId}`;
+			const publicUrl = `${data.serverUrl}/s/${data.syncId}`;
+			const secretUrl = data.syncSecret ? `${publicUrl}#${data.syncSecret}` : publicUrl;
 			new Setting(containerEl)
 				.setName('Public URL')
-				.setDesc('Visit this URL on any device to view and complete tasks.')
+				.setDesc('Read-only URL. Use the Full URL below for editing.')
 				.addText(text => {
-					text.setValue(url);
+					text.setValue(publicUrl);
 					text.setDisabled(true);
 				})
 				.addButton(btn => {
 					btn.setButtonText('Copy');
 					btn.onClick(() => {
-						void navigator.clipboard.writeText(url).then(() => {
-							new Notice('URL copied to clipboard!');
+						void navigator.clipboard.writeText(publicUrl).then(() => {
+							new Notice('Public URL copied to clipboard!');
+						}).catch(() => {
+							new Notice('Failed to copy URL', 4000);
+						});
+					});
+				});
+			new Setting(containerEl)
+				.setName('Full URL (with secret)')
+				.setDesc('Use this URL on your phone to view and complete tasks.')
+				.addText(text => {
+					text.setValue(secretUrl);
+					text.setDisabled(true);
+				})
+				.addButton(btn => {
+					btn.setButtonText('Copy');
+					btn.onClick(() => {
+						void navigator.clipboard.writeText(secretUrl).then(() => {
+							new Notice('Full URL copied to clipboard!');
 						}).catch(() => {
 							new Notice('Failed to copy URL', 4000);
 						});
@@ -94,15 +125,19 @@ export class ChorefastSettingTab extends PluginSettingTab {
 							btn.setButtonText('Deleting...');
 							try {
 								const url = data.serverUrl.replace(/\/+$/, '');
+								const headers: Record<string, string> = {};
+								if (data.syncSecret) headers['x-sync-secret'] = data.syncSecret;
 								const res = await requestUrl({
 									url: `${url}/api/sync/${data.syncId}`,
 									method: 'DELETE',
+									headers,
 									throw: false,
 								});
 								if (res.status >= 400 && res.status !== 404) {
 									throw new Error(`HTTP ${res.status}`);
 								}
 								data.syncId = '';
+								data.syncSecret = '';
 								await this.plugin.saveDataState();
 								new Notice('Sync deleted. A new one can be created anytime.', 4000);
 								this.display();

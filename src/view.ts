@@ -212,14 +212,15 @@ export class ChorefastView extends ItemView {
 				const syncBtn = nameRow.createEl('button', { cls: 'cf-icon-btn', attr: { title: 'Sync to web' } });
 				setIcon(syncBtn, 'refresh-cw');
 				syncBtn.addEventListener('click', () => void this.performSync());
-				const url = `${this.data.serverUrl}/s/${this.data.syncId}`;
+				const publicUrl = `${this.data.serverUrl}/s/${this.data.syncId}`;
+				const fullUrl = this.data.syncSecret ? `${publicUrl}#${this.data.syncSecret}` : publicUrl;
 				const syncUrl = header.createEl('div', { cls: 'cf-sync-url' });
-				syncUrl.createEl('a', { text: url, cls: 'cf-sync-link' }).setAttr('href', url);
-				const copyBtn = syncUrl.createEl('button', { cls: 'cf-icon-btn', attr: { title: 'Copy URL' } });
+				syncUrl.createEl('a', { text: publicUrl, cls: 'cf-sync-link' }).setAttr('href', fullUrl);
+				const copyBtn = syncUrl.createEl('button', { cls: 'cf-icon-btn', attr: { title: 'Copy full URL with secret' } });
 				setIcon(copyBtn, 'clipboard');
 				copyBtn.addEventListener('click', () => {
-					void navigator.clipboard.writeText(url).then(() => {
-						new Notice('URL copied to clipboard!');
+					void navigator.clipboard.writeText(fullUrl).then(() => {
+						new Notice('Full URL copied to clipboard!');
 					}).catch(() => {
 						new Notice('Failed to copy URL', 4000);
 					});
@@ -476,14 +477,39 @@ export class ChorefastView extends ItemView {
 			if (!file || !(file instanceof TFile)) return;
 			const markdown = await this.app.vault.read(file);
 
+			// If we have no secret but a syncId, try to claim a secret for legacy syncs
+			let upgradeSecret: string | undefined;
+			if (!this.data.syncSecret) {
+				upgradeSecret = this.generateSecret();
+			}
+
+			const headers: Record<string, string> = {};
+			if (this.data.syncSecret) headers['x-sync-secret'] = this.data.syncSecret;
+
+			const body: Record<string, unknown> = { markdown };
+			if (upgradeSecret) body.upgradeSecret = upgradeSecret;
+
 			const res = await requestUrl({
 				url: `${this.data.serverUrl}/api/sync/${this.data.syncId}`,
 				method: 'POST',
 				contentType: 'application/json',
-				body: JSON.stringify({ markdown }),
+				headers,
+				body: JSON.stringify(body),
 			});
 
+			if (res.status === 403) {
+				const err = res.json as { error?: string } | undefined;
+				throw new Error(err?.error || 'Sync secret required. Create a new sync or paste the secret in settings.');
+			}
 			if (res.status >= 400) throw new Error(`HTTP ${res.status}`);
+
+			// If we claimed a secret, save it
+			if (upgradeSecret) {
+				this.data.syncSecret = upgradeSecret;
+				await this.store.save(this.data);
+				new Notice('Sync upgraded with a new secret. It is now protected.', 4000);
+			}
+
 			const result = res.json as { markdown: string; appliedCompletions: number };
 
 			if (result.appliedCompletions > 0) {
@@ -497,6 +523,18 @@ export class ChorefastView extends ItemView {
 			const msg = e instanceof Error ? e.message : String(e);
 			new Notice(`Sync failed: ${msg}`, 4000);
 		}
+	}
+
+	private generateSecret(): string {
+		const bytes = new Uint8Array(32);
+		const cryptoObj = window.crypto || (window as unknown as { msCrypto: Crypto }).msCrypto;
+		if (cryptoObj && cryptoObj.getRandomValues) {
+			cryptoObj.getRandomValues(bytes);
+		} else {
+			// Fallback for very old environments
+			for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+		}
+		return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
 	}
 
 }
