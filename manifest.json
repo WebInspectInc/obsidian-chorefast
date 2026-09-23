@@ -1,7 +1,7 @@
 {
 	"id": "chorefast",
 	"name": "Chorefast",
-	"version": "0.0.9",
+	"version": "0.1.0",
 	"minAppVersion": "1.10.0",
 	"description": "Pick a random chore from a Bases Kanban board and publish it to the web. Based on work by Simone Giertz.",
 	"author": "Tim Miller",
