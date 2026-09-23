@@ -17,7 +17,6 @@ export class DataStore {
 		const stored = (await this.plugin.loadData()) as Record<string, unknown> | null | undefined;
 		const data = stored?.[STORAGE_KEY] as Partial<ChorefastData> | undefined;
 		this.cache = {
-			sourceFile: data?.sourceFile ?? null,
 			serverUrl: data?.serverUrl ?? DEFAULT_DATA.serverUrl,
 			syncId: data?.syncId ?? '',
 			syncSecret: data?.syncSecret ?? '',

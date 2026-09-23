@@ -120,7 +120,7 @@ export class ChorefastSettingTab extends PluginSettingTab {
 					btn.setButtonText('Delete');
 					btn.setWarning();
 					btn.onClick(() => {
-						new ConfirmModal(this.app, 'Are you sure? This will permanently delete the sync and its task history from the server.', async () => {
+						new ConfirmModal(this.app, 'Are you sure? This will permanently delete the sync and its board from the server.', async () => {
 							btn.setDisabled(true);
 							btn.setButtonText('Deleting...');
 							try {
@@ -153,15 +153,6 @@ export class ChorefastSettingTab extends PluginSettingTab {
 					});
 				});
 		}
-
-		// Source file
-		new Setting(containerEl)
-			.setName('Source file')
-			.setDesc('The markdown file used as your chore database.')
-			.addText(text => {
-				text.setValue(data.sourceFile ?? '');
-				text.setDisabled(true);
-			});
 	}
 }
 

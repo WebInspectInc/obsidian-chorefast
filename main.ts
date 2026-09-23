@@ -1,63 +1,82 @@
-import { Plugin, WorkspaceLeaf } from 'obsidian';
+import { Notice, Plugin } from 'obsidian';
 import { DataStore } from './src/data';
-import { ChorefastView, VIEW_TYPE_CHOREFAST } from './src/view';
+import { CHOREFAST_VIEW_TYPE, ChorefastKanbanView } from './src/bases-view';
 import { ChorefastSettingTab } from './src/settings';
 import type { ChorefastData } from './src/types';
 
 export default class ChorefastPlugin extends Plugin {
 	private store: DataStore;
 	private data: ChorefastData;
+	private activeView: ChorefastKanbanView | null = null;
 
 	async onload() {
 		this.store = new DataStore(this);
 		this.data = await this.store.load();
 
-		this.registerView(VIEW_TYPE_CHOREFAST, (leaf) => new ChorefastView(leaf, this.store, this.data));
-
-		this.addRibbonIcon('dice', 'Open Chorefast', () => {
-			void this.activateView();
+		const registered = this.registerBasesView(CHOREFAST_VIEW_TYPE, {
+			name: 'Chorefast Kanban',
+			icon: 'dices',
+			factory: (controller, containerEl) => new ChorefastKanbanView(controller, containerEl, this),
+			options: () => [
+				{
+					type: 'property',
+					key: 'titleProperty',
+					displayName: 'Card title property',
+					placeholder: 'File name',
+				},
+				{
+					type: 'text',
+					key: 'doneValue',
+					displayName: 'Done column value',
+					default: 'Done',
+				},
+				{
+					type: 'toggle',
+					key: 'showDice',
+					displayName: 'Show random pick buttons',
+					default: true,
+				},
+			],
 		});
 
+		if (!registered) {
+			new Notice('Chorefast requires Bases to be enabled in this vault.', 6000);
+		}
+
 		this.addCommand({
-			id: 'open',
-			name: 'Open',
-			callback: () => this.activateView(),
+			id: 'publish-board',
+			name: 'Publish board to web',
+			callback: () => void this.publishActiveBoard(),
 		});
 
 		this.addSettingTab(new ChorefastSettingTab(this));
 	}
 
 	onunload() {
-
+		this.activeView = null;
 	}
 
 	getData(): ChorefastData {
 		return this.data;
 	}
 
-	async saveDataState(): Promise<void> {
-		await this.store.save(this.data);
-		// Refresh any open views so they pick up new sync settings
-		this.app.workspace.getLeavesOfType(VIEW_TYPE_CHOREFAST).forEach(leaf => {
-			const view = leaf.view;
-			if (view instanceof ChorefastView) {
-				view.refresh();
-			}
-		});
+	setActiveView(view: ChorefastKanbanView): void {
+		this.activeView = view;
 	}
 
-	async activateView() {
-		const { workspace } = this.app;
-		let leaf: WorkspaceLeaf | null;
-		const leaves = workspace.getLeavesOfType(VIEW_TYPE_CHOREFAST);
-		if (leaves.length > 0) {
-			leaf = leaves[0];
-		} else {
-			leaf = workspace.getRightLeaf(false);
-			await leaf?.setViewState({ type: VIEW_TYPE_CHOREFAST, active: true });
+	clearActiveView(view: ChorefastKanbanView): void {
+		if (this.activeView === view) this.activeView = null;
+	}
+
+	async saveDataState(): Promise<void> {
+		await this.store.save(this.data);
+	}
+
+	private async publishActiveBoard(): Promise<void> {
+		if (!this.activeView) {
+			new Notice('Open a Chorefast Kanban view first.', 4000);
+			return;
 		}
-		if (leaf) {
-			await workspace.revealLeaf(leaf);
-		}
+		await this.activeView.publish();
 	}
 }
