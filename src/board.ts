@@ -15,6 +15,8 @@ export interface BoardColumn {
 export interface BoardPayload {
 	version: 1;
 	columns: BoardColumn[];
+	dueProperty?: string | null;
+	warnDays?: number;
 }
 
 export function getEntryTitle(entry: BasesEntry, config: BasesViewConfig): string {
@@ -48,5 +50,9 @@ export function buildBoard(data: BasesQueryResult, config: BasesViewConfig): Boa
 		columns.push({ key: label, label, cards });
 	}
 
-	return { version: 1, columns };
+	const dueProperty = config.getAsPropertyId('dueProperty') ?? 'note.due';
+	const configuredWarnDays = Number(config.get('warnDays'));
+	const warnDays = Number.isFinite(configuredWarnDays) ? configuredWarnDays : 2;
+
+	return { version: 1, columns, dueProperty, warnDays };
 }
