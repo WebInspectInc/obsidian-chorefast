@@ -118,8 +118,28 @@
 }
 
 .cf-card.cf-selected {
-	border-color: var(--interactive-accent);
-	box-shadow: 0 0 0 1px var(--interactive-accent);
+	border-color: var(--color-orange);
+	box-shadow: 0 0 0 1px var(--color-orange);
+}
+
+.cf-card.cf-due-soon {
+	border-inline-start: 3px solid var(--color-yellow);
+	background: rgba(var(--color-yellow-rgb), 0.08);
+}
+
+.cf-card.cf-due-overdue {
+	border-inline-start: 3px solid var(--color-red);
+	background: rgba(var(--color-red-rgb), 0.08);
+}
+
+.cf-card.cf-selected.cf-due-soon,
+.cf-card.cf-selected.cf-due-overdue {
+	border-inline-start-width: 1px;
+	border-inline-start-color: var(--color-orange);
+}
+
+.cf-card.cf-dragging {
+	opacity: 0.5;
 }
 
 .cf-card-title {
